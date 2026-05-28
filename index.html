@@ -309,6 +309,65 @@
             75% { transform: translate(-5px,0) rotate(-5deg); }
             100% { transform: translate(0,0) rotate(0); }
         }
+
+        /* --- PREMIUM / LIMITE GRÁTIS --- */
+        .premium-box {
+            background: #050505;
+            border: 4px solid var(--poke-gold);
+            border-radius: 28px;
+            padding: 28px 22px;
+            width: min(92vw, 420px);
+            text-align: center;
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.28);
+        }
+        .premium-box h1 {
+            color: var(--poke-gold);
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 18px rgba(255, 215, 0, 0.65);
+        }
+        .premium-box p {
+            color: #fff;
+            font-size: 1rem;
+            line-height: 1.45;
+            margin: 8px 0 14px;
+        }
+        .premium-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 16px;
+            border: 2px solid var(--poke-gold);
+            background: #111;
+            color: #fff;
+            text-align: center;
+            font-size: 1rem;
+            margin: 10px 0;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .premium-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .premium-small {
+            color: #aaa !important;
+            font-size: .78rem !important;
+        }
+        .map-warning {
+            background: rgba(255, 215, 0, 0.12);
+            color: var(--poke-gold);
+            border: 1px solid rgba(255, 215, 0, .45);
+            border-radius: 12px;
+            padding: 10px;
+            max-width: 500px;
+            margin: 10px auto;
+            text-align: center;
+            display: none;
+            font-size: .85rem;
+        }
+
     </style>
 </head>
 <!-- PROTEÇÃO: Eventos direto na tag body para bloquear atalhos de mouse e teclado básicos -->
@@ -323,6 +382,7 @@
         <span id="progressCount">0/0</span>
     </div>
 </header>
+<div id="mapWarning" class="map-warning">Não consegui carregar o mapa.json. Confira se ele está na raiz do GitHub Pages.</div>
 <div class="gen-nav" id="genNav"></div>
 
 <section class="capture-zone">
@@ -359,6 +419,21 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="premiumOverlay">
+    <div class="premium-box" onclick="event.stopPropagation()">
+        <h1>ACESSO PREMIUM</h1>
+        <p>Você usou suas 80 capturas grátis. Para continuar capturando Pokémon, desbloqueie o acesso premium.</p>
+        <input id="premiumKeyInput" class="premium-input" placeholder="DIGITE SUA CHAVE PREMIUM">
+        <div class="premium-actions">
+            <button class="btn-capture" onclick="validatePremiumKey()">DESBLOQUEAR</button>
+            <button class="btn-capture" onclick="buyPremium()">COMPRAR PELO WHATSAPP</button>
+            <button class="btn-capture" onclick="closePremiumModal()">VOLTAR</button>
+        </div>
+        <p id="premiumMsg" class="premium-small"></p>
+    </div>
+</div>
+
+
 <script>
     // --- PROTEÇÕES MÁXIMAS DE JAVASCRIPT ---
     document.addEventListener('contextmenu', e => e.preventDefault());
@@ -377,29 +452,141 @@
     };
     // ----------------------------------------
 
-    const MAP_PATH = "mapa.json";
-    const IMG_BASE = "img/";
+    const LOCAL_PATH = "img/";
     const VIDEO_PATH = "video/";
 
-    let mapaImagens = {};
+    // --- CONFIGURAÇÕES DO PROJETO ---
+    const FREE_CAPTURE_LIMIT = 80;
+    const WHATSAPP_NUMBER = "5500000000000"; // TROQUE PELO SEU WHATSAPP COM DDI + DDD
+    const SUPABASE_URL = "https://pikdkqmcsfcwygtkutab.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_KB1nBw8lxQ_OILSgsSjOJQ_0jnmJZdX";
+    const SECRET_VIDEO_IDS = new Set([6, 25, 94, 130, 150]);
 
-    async function carregarMapa() {
-        try {
-            const response = await fetch(MAP_PATH + "?v=" + Date.now());
-            if (!response.ok) throw new Error("HTTP " + response.status);
-            mapaImagens = await response.json();
-            console.log("mapa.json carregado com sucesso", mapaImagens);
-        } catch (e) {
-            console.error("Erro ao carregar mapa.json", e);
-            mapaImagens = {};
+    let imageMap = {};
+    let mapLoaded = false;
+
+    function normalizeMap(rawMap) {
+        const normalized = {};
+        if (!rawMap) return normalized;
+
+        function cleanId(value) {
+            if (value === undefined || value === null) return null;
+            const match = String(value).match(/\d+/);
+            return match ? String(parseInt(match[0], 10)) : null;
         }
+
+        function cleanFile(value) {
+            if (!value) return null;
+            let file = String(value).trim();
+            if (!file) return null;
+            file = file.replace(/^\.\//, "").replace(/^\//, "");
+            file = file.replace(/^img\//, "");
+            return file;
+        }
+
+        function add(idValue, fileValue) {
+            const id = cleanId(idValue);
+            const file = cleanFile(fileValue);
+            if (id && file) normalized[id] = file;
+        }
+
+        // Formato 1: { "1": "hash.png", "2": "hash.png" }
+        if (!Array.isArray(rawMap) && typeof rawMap === "object") {
+            const possibleContainers = rawMap.imagens || rawMap.images || rawMap.mapa || rawMap.map || rawMap.files || rawMap.arquivos;
+            if (possibleContainers && possibleContainers !== rawMap) {
+                Object.assign(normalized, normalizeMap(possibleContainers));
+            }
+
+            Object.keys(rawMap).forEach(key => {
+                const value = rawMap[key];
+                if (typeof value === "string") {
+                    add(key, value);
+                } else if (value && typeof value === "object") {
+                    const file = value.file || value.filename || value.nome || value.name || value.path || value.url || value.arquivo || value.novo || value.hash || value.imagem || value.image || value.destino;
+                    const id = value.id || value.numero || value.number || value.pokemon_id || value.original || value.origem || key;
+                    add(id, file);
+                }
+            });
+        }
+
+        // Formato 2: [{id:1, file:"hash.png"}] ou [{original:"1.png", novo:"hash.png"}]
+        if (Array.isArray(rawMap)) {
+            rawMap.forEach(item => {
+                if (!item) return;
+                if (Array.isArray(item)) {
+                    add(item[0], item[1]);
+                    return;
+                }
+                if (typeof item === "object") {
+                    const id = item.id || item.numero || item.number || item.pokemon_id || item.original || item.origem || item.old || item.antigo;
+                    const file = item.file || item.filename || item.nome || item.name || item.path || item.url || item.arquivo || item.novo || item.hash || item.imagem || item.image || item.destino;
+                    add(id, file);
+                }
+            });
+        }
+
+        console.log("Mapa normalizado:", normalized);
+        return normalized;
     }
 
-    function getImagePath(id) {
-        const key = String(id);
-        const hash = mapaImagens[key] || mapaImagens[id];
-        if (hash) return IMG_BASE + hash;
-        return IMG_BASE + id + ".png";
+    async function loadImageMap() {
+        try {
+            const response = await fetch("mapa.json?v=" + Date.now(), { cache: "no-store" });
+            if (!response.ok) throw new Error("mapa.json não encontrado");
+            const raw = await response.json();
+            imageMap = normalizeMap(raw);
+            mapLoaded = Object.keys(imageMap).length > 0;
+        } catch (err) {
+            console.warn("Falha ao carregar mapa.json:", err);
+            mapLoaded = false;
+        }
+
+        const warning = document.getElementById("mapWarning");
+        if (warning) warning.style.display = mapLoaded ? "none" : "block";
+    }
+
+    function buildImageCandidates(id) {
+        const mapped = imageMap[String(id)] || imageMap[id];
+        const candidates = [];
+
+        if (mapped) {
+            let clean = String(mapped).trim().replace(/^\.\//, "").replace(/^\//, "");
+            if (/^https?:\/\//i.test(clean)) {
+                candidates.push(clean);
+            } else {
+                clean = clean.replace(/^img\//, "");
+                candidates.push("img/" + clean);
+                if (!/\.(png|jpg|jpeg|webp)$/i.test(clean)) {
+                    candidates.push("img/" + clean + ".png");
+                    candidates.push("img/" + clean + ".jpg");
+                }
+            }
+        }
+
+        // Fallback só para teste local antigo. No GitHub principal deve usar mapa.json.
+        candidates.push(`img/${id}.png`);
+        candidates.push(`img/${id}.jpg`);
+        candidates.push(`img/${id}.jpeg`);
+        candidates.push(`img/${id}.webp`);
+
+        return [...new Set(candidates)];
+    }
+
+    function setSmartImage(img, id) {
+        const candidates = buildImageCandidates(id);
+        let index = 0;
+
+        function tryNext() {
+            if (index >= candidates.length) {
+                img.removeAttribute("src");
+                img.alt = "Imagem não encontrada";
+                return;
+            }
+            img.src = candidates[index++];
+        }
+
+        img.onerror = tryNext;
+        tryNext();
     }
 
     const pokemonData = {
@@ -421,12 +608,95 @@
 
     let currentGen = 0;
     let waitingForReveal = false;
+
+    if (new URLSearchParams(location.search).get("reset") === "true") {
+        ["luxury_unlocked", "luxury_revealed", "free_captures_used", "full_access", "access_key"].forEach(k => localStorage.removeItem(k));
+        history.replaceState(null, "", location.pathname);
+    }
+
     const unlockedIds = new Set(JSON.parse(localStorage.getItem('luxury_unlocked')) || []);
     const revealedIds = new Set(JSON.parse(localStorage.getItem('luxury_revealed')) || []);
+    let freeCapturesUsed = parseInt(localStorage.getItem("free_captures_used") || String(unlockedIds.size), 10);
+    let fullAccess = localStorage.getItem("full_access") === "true";
 
     function save() {
         localStorage.setItem('luxury_unlocked', JSON.stringify([...unlockedIds]));
         localStorage.setItem('luxury_revealed', JSON.stringify([...revealedIds]));
+        localStorage.setItem('free_captures_used', String(freeCapturesUsed));
+        localStorage.setItem('full_access', fullAccess ? 'true' : 'false');
+    }
+
+    function remainingFreeCaptures() {
+        return Math.max(0, FREE_CAPTURE_LIMIT - freeCapturesUsed);
+    }
+
+    function showPremiumModal(message = "") {
+        const msg = document.getElementById("premiumMsg");
+        if (msg) msg.innerText = message;
+        document.getElementById("premiumOverlay").style.display = "flex";
+    }
+
+    function closePremiumModal() {
+        document.getElementById("premiumOverlay").style.display = "none";
+    }
+
+    function buyPremium() {
+        const text = encodeURIComponent("Olá! Quero comprar o acesso premium do Álbum Digital Pokémon.");
+        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, "_blank");
+    }
+
+    async function queryAccessKey(column, key) {
+        const url = `${SUPABASE_URL}/rest/v1/access_keys?select=*&${column}=eq.${encodeURIComponent(key)}&limit=1`;
+        const response = await fetch(url, {
+            headers: {
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+            }
+        });
+        if (!response.ok) return [];
+        return await response.json();
+    }
+
+    async function validatePremiumKey() {
+        const input = document.getElementById("premiumKeyInput");
+        const msg = document.getElementById("premiumMsg");
+        const key = (input.value || "").trim();
+
+        if (!key) {
+            msg.innerText = "Digite sua chave premium.";
+            return;
+        }
+
+        msg.innerText = "Verificando chave...";
+
+        try {
+            let data = [];
+            for (const column of ["key", "access_key", "code"]) {
+                data = await queryAccessKey(column, key);
+                if (Array.isArray(data) && data.length) break;
+            }
+
+            const record = Array.isArray(data) ? data[0] : null;
+            const blocked = record && (record.is_blocked === true || record.blocked === true || record.status === "blocked");
+            const inactive = record && (record.is_active === false || record.active === false || record.status === "inactive");
+
+            if (!record || blocked || inactive) {
+                msg.innerText = "Chave inválida ou bloqueada.";
+                return;
+            }
+
+            fullAccess = true;
+            localStorage.setItem("access_key", key);
+            save();
+            msg.innerText = "Premium desbloqueado!";
+            setTimeout(() => {
+                closePremiumModal();
+                render();
+            }, 700);
+        } catch (err) {
+            console.error(err);
+            msg.innerText = "Erro ao validar. Confira sua conexão e tente novamente.";
+        }
     }
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -569,8 +839,11 @@
         } else if (waitingForReveal) {
             rollBtn.innerText = "VIRE A CARTA";
             rollBtn.disabled = true;
+        } else if (!fullAccess && remainingFreeCaptures() <= 0) {
+            rollBtn.innerText = "DESBLOQUEAR PREMIUM";
+            rollBtn.disabled = false;
         } else {
-            rollBtn.innerText = "CAPTURAR POKÉMON";
+            rollBtn.innerText = fullAccess ? "CAPTURAR POKÉMON" : `CAPTURAR (${remainingFreeCaptures()}/80)`;
             rollBtn.disabled = false;
         }
 
@@ -584,7 +857,7 @@
                 <div class="slot-face slot-back">${numText}</div>
                 <div class="slot-face slot-front">
                     <span class="slot-id">#${numText}</span>
-                    <img src="${getImagePath(i)}" class="pokemon-img" onerror="this.style.opacity='0.25'; this.alt='Imagem não encontrada';">
+                    <img class="pokemon-img" data-poke-id="${i}" alt="Pokémon ${i}">
                 </div>`;
             
             slot.onclick = (e) => {
@@ -610,6 +883,8 @@
                 }
             };
             grid.appendChild(slot);
+            const img = slot.querySelector("img.pokemon-img");
+            if (img) setSmartImage(img, i);
         }
     }
 
@@ -624,8 +899,13 @@
         modalVideo.pause();
         modalVideo.currentTime = 0;
 
-        modalImg.src = getImagePath(id);
-        modalVideo.querySelector('source').src = `${VIDEO_PATH}${id}.mp4`;
+        setSmartImage(modalImg, id);
+        const source = modalVideo.querySelector('source');
+        if (SECRET_VIDEO_IDS.has(id)) {
+            source.src = `${VIDEO_PATH}${id}.mp4`;
+        } else {
+            source.src = "";
+        }
         modalVideo.load();
 
         modalId.innerText = `#${String(id).padStart(3, '0')}`;
@@ -640,6 +920,8 @@
         const video = document.getElementById('modalVideo');
         
         if (!card.classList.contains('flipped')) {
+            const source = video.querySelector('source');
+            if (!source || !source.src) return;
             card.classList.add('flipped');
             video.play();
 
@@ -664,6 +946,10 @@
 
     function startCapture() {
         if (waitingForReveal || isGenComplete(currentGen)) return;
+        if (!fullAccess && remainingFreeCaptures() <= 0) {
+            showPremiumModal("Você chegou ao limite de 80 capturas grátis.");
+            return;
+        }
         const btn = document.getElementById('rollBtn');
         const ball = document.getElementById('pokeBall');
         const num = document.getElementById('pokeNum');
@@ -683,6 +969,7 @@
             const luckyNum = availableInGen[Math.floor(Math.random() * availableInGen.length)];
             num.innerText = luckyNum;
             unlockedIds.add(luckyNum);
+            if (!fullAccess) freeCapturesUsed++;
             save();
             waitingForReveal = true;
             render();
@@ -698,10 +985,13 @@
         }, 1500);
     }
 
-    carregarMapa().then(() => {
+    async function initApp() {
+        await loadImageMap();
         renderNav();
         render();
-    });
+    }
+
+    initApp();
 </script>
 
 </body>
