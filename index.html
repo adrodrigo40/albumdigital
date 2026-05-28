@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokédex de Luxo | Coleção Digital</title>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --poke-red: #ff1f1f;
@@ -311,70 +310,64 @@
             100% { transform: translate(0,0) rotate(0); }
         }
 
-
-        /* --- MODAL PREMIUM / LIMITE GRÁTIS --- */
-        .premium-panel {
-            width: min(92vw, 420px);
+        /* --- PREMIUM / LIMITE GRÁTIS --- */
+        .premium-box {
             background: #050505;
             border: 4px solid var(--poke-gold);
             border-radius: 28px;
-            padding: 28px 20px;
+            padding: 28px 22px;
+            width: min(92vw, 420px);
             text-align: center;
-            box-shadow: 0 0 35px rgba(255, 215, 0, 0.35);
-            position: relative;
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.28);
         }
-        .premium-panel h1 {
+        .premium-box h1 {
             color: var(--poke-gold);
             font-size: 2rem;
             margin-bottom: 10px;
-            text-shadow: 0 0 15px var(--poke-gold);
+            text-shadow: 0 0 18px rgba(255, 215, 0, 0.65);
         }
-        .premium-panel p {
+        .premium-box p {
             color: #fff;
             font-size: 1rem;
             line-height: 1.45;
-            margin-bottom: 15px;
-        }
-        .premium-panel small {
-            display: block;
-            color: #aaa;
-            margin: 8px 0 16px;
-            line-height: 1.35;
+            margin: 8px 0 14px;
         }
         .premium-input {
             width: 100%;
-            padding: 14px 16px;
-            border-radius: 18px;
-            border: 2px solid #333;
+            padding: 14px;
+            border-radius: 16px;
+            border: 2px solid var(--poke-gold);
             background: #111;
             color: #fff;
             text-align: center;
             font-size: 1rem;
-            outline: none;
-            margin: 8px 0 12px;
+            margin: 10px 0;
             user-select: text;
             -webkit-user-select: text;
         }
         .premium-actions {
             display: flex;
-            gap: 10px;
             flex-direction: column;
-        }
-        .btn-whatsapp {
-            background: #25D366;
-            color: #041b0d;
-        }
-        .premium-status {
-            min-height: 20px;
-            color: var(--poke-gold);
-            font-size: 0.85rem;
-            margin-top: 10px;
-        }
-        .capture-counter {
-            color: var(--poke-gold);
-            font-size: 0.9rem;
+            gap: 10px;
             margin-top: 12px;
         }
+        .premium-small {
+            color: #aaa !important;
+            font-size: .78rem !important;
+        }
+        .map-warning {
+            background: rgba(255, 215, 0, 0.12);
+            color: var(--poke-gold);
+            border: 1px solid rgba(255, 215, 0, .45);
+            border-radius: 12px;
+            padding: 10px;
+            max-width: 500px;
+            margin: 10px auto;
+            text-align: center;
+            display: none;
+            font-size: .85rem;
+        }
+
     </style>
 </head>
 <!-- PROTEÇÃO: Eventos direto na tag body para bloquear atalhos de mouse e teclado básicos -->
@@ -389,6 +382,7 @@
         <span id="progressCount">0/0</span>
     </div>
 </header>
+<div id="mapWarning" class="map-warning">Não consegui carregar o mapa.json. Confira se ele está na raiz do GitHub Pages.</div>
 <div class="gen-nav" id="genNav"></div>
 
 <section class="capture-zone">
@@ -396,7 +390,6 @@
         <span class="lucky-number" id="pokeNum">?</span>
     </div>
     <button class="btn-capture" id="rollBtn" onclick="startCapture()">Capturar Pokémon</button>
-    <div class="capture-counter" id="captureCounter">Capturas grátis: 0/80</div>
 </section>
 
 <div class="pokedex-grid" id="pokedex"></div>
@@ -426,22 +419,20 @@
     </div>
 </div>
 
-
 <div class="modal-overlay" id="premiumOverlay">
-    <div class="premium-panel" onclick="event.stopPropagation()">
+    <div class="premium-box" onclick="event.stopPropagation()">
         <h1>ACESSO PREMIUM</h1>
-        <p>Você usou suas 80 capturas grátis.</p>
-        <p>Para continuar capturando e completar todas as regiões, desbloqueie o acesso premium.</p>
-        <small>Digite sua chave premium abaixo ou compre pelo WhatsApp.</small>
-        <input id="premiumKeyInput" class="premium-input" type="text" placeholder="DIGITE SUA CHAVE PREMIUM">
+        <p>Você usou suas 80 capturas grátis. Para continuar capturando Pokémon, desbloqueie o acesso premium.</p>
+        <input id="premiumKeyInput" class="premium-input" placeholder="DIGITE SUA CHAVE PREMIUM">
         <div class="premium-actions">
             <button class="btn-capture" onclick="validatePremiumKey()">DESBLOQUEAR</button>
-            <button class="btn-capture btn-whatsapp" onclick="buyPremium()">COMPRAR PELO WHATSAPP</button>
+            <button class="btn-capture" onclick="buyPremium()">COMPRAR PELO WHATSAPP</button>
             <button class="btn-capture" onclick="closePremiumModal()">VOLTAR</button>
         </div>
-        <div class="premium-status" id="premiumStatus"></div>
+        <p id="premiumMsg" class="premium-small"></p>
     </div>
 </div>
+
 
 <script>
     // --- PROTEÇÕES MÁXIMAS DE JAVASCRIPT ---
@@ -451,34 +442,113 @@
     document.addEventListener('copy', e => e.preventDefault());
     
     document.onkeydown = function(e) {
-        if (e.keyCode === 123) return false;
-        if (e.ctrlKey && e.shiftKey && e.keyCode === 73) return false;
-        if (e.ctrlKey && e.shiftKey && e.keyCode === 74) return false;
-        if (e.ctrlKey && e.shiftKey && e.keyCode === 67) return false;
-        if (e.ctrlKey && e.keyCode === 85) return false;
-        if (e.ctrlKey && e.keyCode === 83) return false;
-        if (e.ctrlKey && e.keyCode === 80) return false;
+        if (e.keyCode === 123) return false; // Bloqueia F12
+        if (e.ctrlKey && e.shiftKey && e.keyCode === 73) return false; // Bloqueia Ctrl+Shift+I
+        if (e.ctrlKey && e.shiftKey && e.keyCode === 74) return false; // Bloqueia Ctrl+Shift+J
+        if (e.ctrlKey && e.shiftKey && e.keyCode === 67) return false; // Bloqueia Ctrl+Shift+C
+        if (e.ctrlKey && e.keyCode === 85) return false; // Bloqueia Ctrl+U (Ver código-fonte)
+        if (e.ctrlKey && e.keyCode === 83) return false; // Bloqueia Ctrl+S (Salvar como)
+        if (e.ctrlKey && e.keyCode === 80) return false; // Bloqueia Ctrl+P (Imprimir)
     };
     // ----------------------------------------
 
     const LOCAL_PATH = "img/";
     const VIDEO_PATH = "video/";
-    const MAPA_PATH = "mapa.json";
+
+    // --- CONFIGURAÇÕES DO PROJETO ---
     const FREE_CAPTURE_LIMIT = 80;
-    const WHATSAPP_NUMBER = "5500000000000"; // TROQUE PELO SEU WHATSAPP COM DDI + DDD + NÚMERO
+    const WHATSAPP_NUMBER = "5500000000000"; // TROQUE PELO SEU WHATSAPP COM DDI + DDD
     const SUPABASE_URL = "https://pikdkqmcsfcwygtkutab.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_KB1nBw8lxQ_OILSgsSjOJQ_0jnmJZdX";
-    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    const SECRET_VIDEO_IDS = new Set([6, 25, 94, 130, 150]);
 
-    const SECRET_VIDEOS = {
-        6: `${VIDEO_PATH}6.mp4`,
-        25: `${VIDEO_PATH}25.mp4`,
-        94: `${VIDEO_PATH}94.mp4`,
-        130: `${VIDEO_PATH}130.mp4`,
-        150: `${VIDEO_PATH}150.mp4`
-    };
+    let imageMap = {};
+    let mapLoaded = false;
 
-    let mapaImagens = {};
+    function normalizeMap(rawMap) {
+        const normalized = {};
+        if (!rawMap || typeof rawMap !== "object") return normalized;
+
+        // Formato esperado: { "1": "hash.png", "2": "hash.png" }
+        Object.keys(rawMap).forEach(key => {
+            const value = rawMap[key];
+            if (typeof value === "string") {
+                normalized[String(parseInt(key, 10))] = value;
+            } else if (value && typeof value === "object") {
+                const file = value.file || value.filename || value.nome || value.name || value.path || value.url;
+                if (file) normalized[String(parseInt(key, 10))] = file;
+            }
+        });
+
+        // Formato alternativo: [{id:1,file:"hash.png"}]
+        if (Array.isArray(rawMap)) {
+            rawMap.forEach(item => {
+                if (!item) return;
+                const id = item.id || item.numero || item.number || item.pokemon_id;
+                const file = item.file || item.filename || item.nome || item.name || item.path || item.url;
+                if (id && file) normalized[String(parseInt(id, 10))] = file;
+            });
+        }
+        return normalized;
+    }
+
+    async function loadImageMap() {
+        try {
+            const response = await fetch("mapa.json?v=" + Date.now(), { cache: "no-store" });
+            if (!response.ok) throw new Error("mapa.json não encontrado");
+            const raw = await response.json();
+            imageMap = normalizeMap(raw);
+            mapLoaded = Object.keys(imageMap).length > 0;
+        } catch (err) {
+            console.warn("Falha ao carregar mapa.json:", err);
+            mapLoaded = false;
+        }
+
+        const warning = document.getElementById("mapWarning");
+        if (warning) warning.style.display = mapLoaded ? "none" : "block";
+    }
+
+    function buildImageCandidates(id) {
+        const mapped = imageMap[String(id)] || imageMap[id];
+        const candidates = [];
+
+        if (mapped) {
+            const clean = String(mapped).trim();
+            if (/^https?:\/\//i.test(clean)) {
+                candidates.push(clean);
+            } else {
+                const noLead = clean.replace(/^\.\//, "").replace(/^\//, "");
+                candidates.push(noLead);
+                candidates.push("img/" + noLead.replace(/^img\//, ""));
+                candidates.push("imagens/" + noLead.replace(/^imagens\//, ""));
+                candidates.push("images/" + noLead.replace(/^images\//, ""));
+            }
+        }
+
+        candidates.push(`img/${id}.png`);
+        candidates.push(`img/${id}.jpg`);
+        candidates.push(`${id}.png`);
+        candidates.push(`${id}.jpg`);
+
+        return [...new Set(candidates)];
+    }
+
+    function setSmartImage(img, id) {
+        const candidates = buildImageCandidates(id);
+        let index = 0;
+
+        function tryNext() {
+            if (index >= candidates.length) {
+                img.removeAttribute("src");
+                img.alt = "Imagem não encontrada";
+                return;
+            }
+            img.src = candidates[index++];
+        }
+
+        img.onerror = tryNext;
+        tryNext();
+    }
 
     const pokemonData = {
         1: "Bulbasaur", 1025: "Walking-wake-v2"
@@ -494,24 +564,21 @@
         { name: "Alola", start: 722, end: 809 },
         { name: "Galar", start: 810, end: 905 },
         { name: "Paldea", start: 906, end: 1025 },
-        { name: "Variações", start: 1026, end: 1257 }
+        { name: "Variações", start: 1026, end: 1250 }
     ];
-
-    if (new URLSearchParams(window.location.search).get('reset') === 'true') {
-        localStorage.removeItem('luxury_unlocked');
-        localStorage.removeItem('luxury_revealed');
-        localStorage.removeItem('free_captures_used');
-        localStorage.removeItem('full_access');
-        localStorage.removeItem('access_key');
-        history.replaceState(null, '', window.location.pathname);
-    }
 
     let currentGen = 0;
     let waitingForReveal = false;
+
+    if (new URLSearchParams(location.search).get("reset") === "true") {
+        ["luxury_unlocked", "luxury_revealed", "free_captures_used", "full_access", "access_key"].forEach(k => localStorage.removeItem(k));
+        history.replaceState(null, "", location.pathname);
+    }
+
     const unlockedIds = new Set(JSON.parse(localStorage.getItem('luxury_unlocked')) || []);
     const revealedIds = new Set(JSON.parse(localStorage.getItem('luxury_revealed')) || []);
-    let freeCapturesUsed = parseInt(localStorage.getItem('free_captures_used') || '0', 10);
-    let fullAccess = localStorage.getItem('full_access') === 'true';
+    let freeCapturesUsed = parseInt(localStorage.getItem("free_captures_used") || String(unlockedIds.size), 10);
+    let fullAccess = localStorage.getItem("full_access") === "true";
 
     function save() {
         localStorage.setItem('luxury_unlocked', JSON.stringify([...unlockedIds]));
@@ -520,131 +587,82 @@
         localStorage.setItem('full_access', fullAccess ? 'true' : 'false');
     }
 
-    function getDeviceId() {
-        let id = localStorage.getItem('device_id');
-        if (!id) {
-            id = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-            localStorage.setItem('device_id', id);
-        }
-        return id;
+    function remainingFreeCaptures() {
+        return Math.max(0, FREE_CAPTURE_LIMIT - freeCapturesUsed);
     }
 
-    async function loadImageMap() {
-        try {
-            const res = await fetch(MAPA_PATH, { cache: 'no-store' });
-            if (!res.ok) throw new Error('mapa.json não encontrado');
-            mapaImagens = await res.json();
-        } catch (err) {
-            console.warn('Não foi possível carregar mapa.json. Fallback temporário para img/ID.png.', err);
-            mapaImagens = {};
-        }
-    }
-
-    function getImageUrl(id) {
-        const value = mapaImagens[id] || mapaImagens[String(id)];
-        if (!value) return `${LOCAL_PATH}${id}.png`;
-        if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value;
-        if (value.includes('/')) return value;
-        return `${LOCAL_PATH}${value}`;
-    }
-
-    function getPokemonName(id) {
-        return pokemonData[id] || "Pokémon";
-    }
-
-    function canCaptureMore() {
-        return fullAccess || freeCapturesUsed < FREE_CAPTURE_LIMIT;
-    }
-
-    function updateCaptureCounter() {
-        const el = document.getElementById('captureCounter');
-        if (!el) return;
-        if (fullAccess) {
-            el.innerText = 'Premium ativo: capturas ilimitadas';
-        } else {
-            el.innerText = `Capturas grátis: ${freeCapturesUsed}/${FREE_CAPTURE_LIMIT}`;
-        }
-    }
-
-    function showPremiumModal(message = '') {
-        document.getElementById('premiumOverlay').style.display = 'flex';
-        document.getElementById('premiumStatus').innerText = message;
+    function showPremiumModal(message = "") {
+        const msg = document.getElementById("premiumMsg");
+        if (msg) msg.innerText = message;
+        document.getElementById("premiumOverlay").style.display = "flex";
     }
 
     function closePremiumModal() {
-        document.getElementById('premiumOverlay').style.display = 'none';
+        document.getElementById("premiumOverlay").style.display = "none";
     }
 
     function buyPremium() {
-        const text = encodeURIComponent('Olá! Quero comprar o acesso premium do Álbum Digital Pokémon.');
-        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank');
+        const text = encodeURIComponent("Olá! Quero comprar o acesso premium do Álbum Digital Pokémon.");
+        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, "_blank");
+    }
+
+    async function queryAccessKey(column, key) {
+        const url = `${SUPABASE_URL}/rest/v1/access_keys?select=*&${column}=eq.${encodeURIComponent(key)}&limit=1`;
+        const response = await fetch(url, {
+            headers: {
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+            }
+        });
+        if (!response.ok) return [];
+        return await response.json();
     }
 
     async function validatePremiumKey() {
-        const input = document.getElementById('premiumKeyInput');
-        const status = document.getElementById('premiumStatus');
-        const key = (input.value || '').trim();
+        const input = document.getElementById("premiumKeyInput");
+        const msg = document.getElementById("premiumMsg");
+        const key = (input.value || "").trim();
+
         if (!key) {
-            status.innerText = 'Digite uma chave premium.';
+            msg.innerText = "Digite sua chave premium.";
             return;
         }
-        if (!supabaseClient) {
-            status.innerText = 'Supabase não carregou. Verifique a internet e tente novamente.';
-            return;
-        }
-        status.innerText = 'Validando chave...';
+
+        msg.innerText = "Verificando chave...";
+
         try {
-            const { data, error } = await supabaseClient
-                .from('access_keys')
-                .select('*')
-                .eq('key', key)
-                .maybeSingle();
-
-            if (error || !data) {
-                status.innerText = 'Chave inválida.';
-                return;
+            let data = [];
+            for (const column of ["key", "access_key", "code"]) {
+                data = await queryAccessKey(column, key);
+                if (Array.isArray(data) && data.length) break;
             }
 
-            if (data.is_active === false || data.blocked === true) {
-                status.innerText = 'Esta chave está bloqueada.';
-                return;
-            }
+            const record = Array.isArray(data) ? data[0] : null;
+            const blocked = record && (record.is_blocked === true || record.blocked === true || record.status === "blocked");
+            const inactive = record && (record.is_active === false || record.active === false || record.status === "inactive");
 
-            if (data.key_type && data.key_type !== 'premium') {
-                status.innerText = 'Esta chave não é premium.';
+            if (!record || blocked || inactive) {
+                msg.innerText = "Chave inválida ou bloqueada.";
                 return;
-            }
-
-            const deviceId = getDeviceId();
-            if (data.device_id && data.device_id !== deviceId) {
-                status.innerText = 'Esta chave já foi usada em outro aparelho.';
-                return;
-            }
-
-            if (!data.device_id) {
-                await supabaseClient
-                    .from('access_keys')
-                    .update({ device_id: deviceId, used_at: new Date().toISOString() })
-                    .eq('key', key);
             }
 
             fullAccess = true;
-            localStorage.setItem('access_key', key);
+            localStorage.setItem("access_key", key);
             save();
-            updateCaptureCounter();
-            closePremiumModal();
-            render();
-            alert('Premium desbloqueado com sucesso!');
+            msg.innerText = "Premium desbloqueado!";
+            setTimeout(() => {
+                closePremiumModal();
+                render();
+            }, 700);
         } catch (err) {
             console.error(err);
-            status.innerText = 'Erro ao validar. Tente novamente.';
+            msg.innerText = "Erro ao validar. Confira sua conexão e tente novamente.";
         }
     }
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playRollSound() {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'square';
@@ -659,7 +677,6 @@
     }
 
     function playRevealSound() {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
@@ -674,7 +691,6 @@
     }
 
     function playVictorySound() {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
         const notes = [523.25, 659.25, 783.99, 1046.50];
         notes.forEach((freq, i) => {
             const osc = audioCtx.createOscillator();
@@ -751,7 +767,12 @@
                 if (isLocked) return;
                 currentGen = i;
                 document.getElementById('gen-title').innerText = `REGIÃO DE ${g.name.toUpperCase()}`; 
-                if(isGenComplete(i)) document.getElementById('pokeNum').innerText = "?";
+                
+                // Mudar número na pokebola para "?" se a região estiver completa ao navegar
+                if(isGenComplete(i)){
+                    document.getElementById('pokeNum').innerText = "?";
+                }
+
                 renderNav();
                 render();
             };
@@ -772,7 +793,6 @@
         const percent = (countRevealed / totalGen) * 100;
         progressBar.style.width = percent + "%";
         progressCount.innerText = `${countRevealed}/${totalGen}`;
-        updateCaptureCounter();
 
         if(isGenComplete(currentGen)) {
             rollBtn.innerText = "COLEÇÃO COMPLETA";
@@ -780,11 +800,11 @@
         } else if (waitingForReveal) {
             rollBtn.innerText = "VIRE A CARTA";
             rollBtn.disabled = true;
-        } else if (!canCaptureMore()) {
+        } else if (!fullAccess && remainingFreeCaptures() <= 0) {
             rollBtn.innerText = "DESBLOQUEAR PREMIUM";
             rollBtn.disabled = false;
         } else {
-            rollBtn.innerText = "CAPTURAR POKÉMON";
+            rollBtn.innerText = fullAccess ? "CAPTURAR POKÉMON" : `CAPTURAR (${remainingFreeCaptures()}/80)`;
             rollBtn.disabled = false;
         }
 
@@ -798,13 +818,16 @@
                 <div class="slot-face slot-back">${numText}</div>
                 <div class="slot-face slot-front">
                     <span class="slot-id">#${numText}</span>
-                    <img src="${getImageUrl(i)}" class="pokemon-img">
+                    <img class="pokemon-img" data-poke-id="${i}" alt="Pokémon ${i}">
                 </div>`;
             
             slot.onclick = (e) => {
                 if (!unlockedIds.has(i)) return;
+                
+                // Resetar número na pokebola para "?" ao revelar personagem
                 if (!revealedIds.has(i)) {
                     document.getElementById('pokeNum').innerText = "?"; 
+                    
                     if (waitingForReveal) waitingForReveal = false;
                     slot.classList.remove('target-pulse');
                     revealedIds.add(i);
@@ -821,6 +844,8 @@
                 }
             };
             grid.appendChild(slot);
+            const img = slot.querySelector("img.pokemon-img");
+            if (img) setSmartImage(img, i);
         }
     }
 
@@ -830,20 +855,23 @@
         const modalImg = document.getElementById('modalImg');
         const modalVideo = document.getElementById('modalVideo');
         const modalCard = document.getElementById('modalCard');
-        const hint = document.querySelector('.modal-face-front p[style]');
         
         modalCard.classList.remove('flipped');
         modalVideo.pause();
         modalVideo.currentTime = 0;
 
-        modalImg.src = getImageUrl(id);
-        const videoSrc = SECRET_VIDEOS[id] || `${VIDEO_PATH}${id}.mp4`;
-        modalVideo.querySelector('source').src = videoSrc;
+        setSmartImage(modalImg, id);
+        const source = modalVideo.querySelector('source');
+        if (SECRET_VIDEO_IDS.has(id)) {
+            source.src = `${VIDEO_PATH}${id}.mp4`;
+        } else {
+            source.src = "";
+        }
         modalVideo.load();
 
         modalId.innerText = `#${String(id).padStart(3, '0')}`;
-        modalName.innerText = getPokemonName(id);
-        if (hint) hint.innerText = SECRET_VIDEOS[id] ? '▶ VÍDEO SECRETO' : 'CLIQUE PARA VIRAR';
+        modalName.innerText = pokemonData[id] || "Variação";
+        
         document.getElementById('modalOverlay').style.display = 'flex';
     }
 
@@ -853,8 +881,10 @@
         const video = document.getElementById('modalVideo');
         
         if (!card.classList.contains('flipped')) {
+            const source = video.querySelector('source');
+            if (!source || !source.src) return;
             card.classList.add('flipped');
-            video.play().catch(() => {});
+            video.play();
 
             setTimeout(() => {
                 if (card.classList.contains('flipped')) {
@@ -877,11 +907,10 @@
 
     function startCapture() {
         if (waitingForReveal || isGenComplete(currentGen)) return;
-        if (!canCaptureMore()) {
-            showPremiumModal('Limite grátis atingido. Desbloqueie o premium para continuar.');
+        if (!fullAccess && remainingFreeCaptures() <= 0) {
+            showPremiumModal("Você chegou ao limite de 80 capturas grátis.");
             return;
         }
-
         const btn = document.getElementById('rollBtn');
         const ball = document.getElementById('pokeBall');
         const num = document.getElementById('pokeNum');
@@ -917,13 +946,13 @@
         }, 1500);
     }
 
-    async function init() {
+    async function initApp() {
         await loadImageMap();
         renderNav();
         render();
     }
 
-    init();
+    initApp();
 </script>
 
 </body>
