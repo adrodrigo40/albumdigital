@@ -236,8 +236,8 @@
         }
 
         .pokemon-slot.rarity-super .slot-front {
-            border: 3px solid #ffd700;
-            box-shadow: 0 0 12px #ffd700, 0 0 24px rgba(255, 215, 0, 0.85), 0 0 42px rgba(255, 215, 0, 0.55);
+            border: 3px solid #ff1f1f;
+            box-shadow: 0 0 10px #ffffff, 0 0 20px rgba(255, 31, 31, 0.85), 0 0 38px rgba(255, 255, 255, 0.45);
         }
 
         .pokemon-slot.rarity-super .slot-front::before {
@@ -245,8 +245,8 @@
             position: absolute;
             inset: 0;
             border-radius: inherit;
-            background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 28%),
-                        linear-gradient(135deg, rgba(255,215,0,0.15), transparent 45%, rgba(255,215,0,0.2));
+            background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.45), transparent 28%),
+                        linear-gradient(135deg, rgba(255,31,31,0.18), transparent 45%, rgba(255,255,255,0.18));
             pointer-events: none;
             z-index: 1;
         }
@@ -258,8 +258,8 @@
         }
 
         .pokemon-slot.rarity-super .slot-id {
-            color: #fff2a8;
-            text-shadow: 0 0 10px #ffd700;
+            color: #ffffff;
+            text-shadow: 0 0 8px #ff1f1f, 0 0 14px #ffffff;
         }
 
         .modal-card.rarity-rare .modal-face {
@@ -268,8 +268,12 @@
         }
 
         .modal-card.rarity-super .modal-face {
-            border-color: #ffd700;
-            box-shadow: 0 0 18px #ffd700, 0 0 36px rgba(255, 215, 0, 0.65), 0 0 55px rgba(255, 215, 0, 0.35);
+            border-color: #ff1f1f;
+            box-shadow: 0 0 12px #ffffff, 0 0 28px rgba(255, 31, 31, 0.75), 0 0 48px rgba(255, 255, 255, 0.35);
+        }
+
+        .modal-card.no-video {
+            cursor: default;
         }
 
         .pokemon-img {
@@ -559,6 +563,11 @@
     const SUPABASE_ANON_KEY = "sb_publishable_KB1nBw8lxQ_OILSgsSjOJQ_0jnmJZdX";
     const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
+    // VÍDEOS SECRETOS:
+    // Coloque os vídeos na pasta /video, na raiz do GitHub, junto com index.html e mapa.json.
+    // Exemplo de caminho publicado: https://adrodrigo40.github.io/albumdigital/video/6.mp4
+    // Só aparece botão/vídeo para os IDs cadastrados aqui. Onde não tiver ID cadastrado, não aparece vídeo.
+    // Para liberar outro vídeo, envie o arquivo para /video e adicione a linha:  ID: `${VIDEO_PATH}ID.mp4`,
     const SECRET_VIDEOS = {
         6: `${VIDEO_PATH}6.mp4`,
         25: `${VIDEO_PATH}25.mp4`,
@@ -2064,19 +2073,24 @@
         const modalCard = document.getElementById('modalCard');
         const hint = document.querySelector('.modal-face-front p[style]');
         
-        modalCard.classList.remove('flipped', 'rarity-common', 'rarity-rare', 'rarity-super');
+        const hasSecretVideo = !!SECRET_VIDEOS[id];
+
+        modalCard.classList.remove('flipped', 'rarity-common', 'rarity-rare', 'rarity-super', 'no-video');
         modalCard.classList.add(`rarity-${getCardRarity(id)}`);
+        if (!hasSecretVideo) modalCard.classList.add('no-video');
         modalVideo.pause();
         modalVideo.currentTime = 0;
 
         modalImg.src = getImageUrl(id);
-        const videoSrc = SECRET_VIDEOS[id] || `${VIDEO_PATH}${id}.mp4`;
-        modalVideo.querySelector('source').src = videoSrc;
+        modalVideo.querySelector('source').src = hasSecretVideo ? SECRET_VIDEOS[id] : '';
         modalVideo.load();
 
         modalId.innerText = `#${String(id).padStart(3, '0')}`;
         modalName.innerText = getPokemonName(id);
-        if (hint) hint.innerText = SECRET_VIDEOS[id] ? '▶ VÍDEO SECRETO' : 'CLIQUE PARA VIRAR';
+        if (hint) {
+            hint.innerText = hasSecretVideo ? '▶ VÍDEO SECRETO' : '';
+            hint.style.display = hasSecretVideo ? 'block' : 'none';
+        }
         document.getElementById('modalOverlay').style.display = 'flex';
     }
 
@@ -2084,6 +2098,7 @@
         event.stopPropagation();
         const card = document.getElementById('modalCard');
         const video = document.getElementById('modalVideo');
+        if (card.classList.contains('no-video')) return;
         
         if (!card.classList.contains('flipped')) {
             card.classList.add('flipped');
