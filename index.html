@@ -1616,6 +1616,38 @@
         return pokemonData[id] || "Pokémon";
     }
 
+    // Raridades usadas apenas para som especial ao revelar a carta.
+    // Comum: usa o som atual. Rara: som mais brilhante. Super rara: som épico.
+    const SUPER_RARE_IDS = new Set([
+        144,145,146,150,151,
+        243,244,245,249,250,251,
+        377,378,379,380,381,382,383,384,385,386,
+        480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,
+        638,639,640,641,642,643,644,645,646,647,648,649,
+        716,717,718,719,720,721,
+        785,786,787,788,789,790,791,792,793,794,795,796,797,798,799,800,801,802,807,808,809,
+        888,889,890,891,892,893,894,895,896,897,898,905,
+        1001,1002,1003,1004,1007,1008,1009,1010,1014,1015,1016,1017,1020,1021,1022,1023,1024,1025
+    ]);
+
+    const RARE_IDS = new Set([
+        3,6,9,25,26,65,68,76,94,130,131,133,134,135,136,142,143,149,
+        157,160,181,196,197,208,212,214,230,248,
+        254,257,260,282,289,306,330,350,359,373,376,
+        389,392,395,405,407,445,448,464,466,467,468,470,471,473,475,477,479,
+        497,500,503,530,534,553,571,579,612,635,637,
+        652,655,658,663,681,700,706,715,
+        724,727,730,738,745,748,758,763,768,778,784,
+        812,815,818,823,826,834,836,839,842,849,851,858,861,869,879,884,887,
+        908,911,914,923,927,930,934,936,937,939,941,943,945,949,952,956,959,964,966,970,972,975,977,979,981,983,998,1000,1005,1006,1018,1019
+    ]);
+
+    function getCardRarity(id) {
+        if (SUPER_RARE_IDS.has(id)) return 'super';
+        if (RARE_IDS.has(id)) return 'rare';
+        return 'common';
+    }
+
     function canCaptureMore() {
         return fullAccess || freeCapturesUsed < FREE_CAPTURE_LIMIT;
     }
@@ -1763,6 +1795,66 @@
         osc.stop(audioCtx.currentTime + 0.5);
     }
 
+    function playRareRevealSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        const notes = [659.25, 783.99, 987.77];
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.09);
+            gain.gain.setValueAtTime(0.15, now + i * 0.09);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.09 + 0.45);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.09);
+            osc.stop(now + i * 0.09 + 0.45);
+        });
+    }
+
+    function playSuperRareRevealSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = i % 2 === 0 ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.11);
+            gain.gain.setValueAtTime(0.18, now + i * 0.11);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.11 + 0.65);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.11);
+            osc.stop(now + i * 0.11 + 0.65);
+        });
+
+        // Grave curto para dar sensação de carta especial/lendária.
+        const bass = audioCtx.createOscillator();
+        const bassGain = audioCtx.createGain();
+        bass.type = 'sawtooth';
+        bass.frequency.setValueAtTime(90, now);
+        bass.frequency.exponentialRampToValueAtTime(45, now + 0.5);
+        bassGain.gain.setValueAtTime(0.08, now);
+        bassGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+        bass.connect(bassGain);
+        bassGain.connect(audioCtx.destination);
+        bass.start(now);
+        bass.stop(now + 0.5);
+    }
+
+    function playRevealSoundByRarity(id) {
+        const rarity = getCardRarity(id);
+        if (rarity === 'super') {
+            playSuperRareRevealSound();
+        } else if (rarity === 'rare') {
+            playRareRevealSound();
+        } else {
+            playRevealSound();
+        }
+    }
+
     function playVictorySound() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const notes = [523.25, 659.25, 783.99, 1046.50];
@@ -1899,8 +1991,8 @@
                     slot.classList.remove('target-pulse');
                     revealedIds.add(i);
                     save();
-                    playRevealSound();
-                    createExplosion(e.clientX, e.clientY);
+                    playRevealSoundByRarity(i);
+                    createExplosion(e.clientX, e.clientY, getCardRarity(i) === 'super');
                     slot.classList.add('revealed');
                     setTimeout(() => {
                         render();
@@ -1990,7 +2082,10 @@
             ball.classList.remove('rolling');
             const luckyNum = availableInGen[Math.floor(Math.random() * availableInGen.length)];
             num.innerText = luckyNum;
-            playCaptureSuccessSound();
+            // Toca o som final somente depois que o número sorteado já foi pintado na tela.
+            requestAnimationFrame(() => {
+                playCaptureSuccessSound();
+            });
             unlockedIds.add(luckyNum);
             if (!fullAccess) freeCapturesUsed++;
             save();
