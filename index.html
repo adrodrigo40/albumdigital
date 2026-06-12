@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -500,7 +500,504 @@
         .capture-counter {
             display: none !important;
         }
-    </style>
+    
+
+        /* --- LÓGICA DAS CARTAS: pacote com 10 cartas estilo metralhadora --- */
+        .pokeball-display.card-pack-stage {
+            width: 170px;
+            height: 238px;
+            margin: 0 auto 20px;
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 16px !important;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none !important;
+            perspective: 1200px;
+            overflow: visible;
+        }
+
+        .pokeball-display.card-pack-stage::before,
+        .pokeball-display.card-pack-stage::after {
+            display: none !important;
+            content: none !important;
+        }
+
+        .card-pack-pile {
+            position: relative;
+            width: 150px;
+            height: 210px;
+            perspective: 1200px;
+        }
+
+        .pack-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left: -170vw;
+            top: 0;
+            opacity: 0;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275), left 0.55s ease-out, opacity 0.35s ease;
+            cursor: pointer;
+            border-radius: 18px;
+        }
+
+        .pack-card.at-center {
+            left: 0 !important;
+            opacity: 1;
+        }
+
+        .pack-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .pack-card.exit-right {
+            left: 180vw !important;
+            opacity: 0;
+        }
+
+        .pack-face {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 18px;
+            border: 3px solid var(--poke-gold);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.55), 0 0 18px rgba(255,215,0,0.35);
+            overflow: hidden;
+        }
+
+        .pack-face-back {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at 50% 38%, rgba(255,255,255,0.16), transparent 24%),
+                linear-gradient(135deg, #090909 0%, #251500 45%, #050505 100%);
+        }
+
+        .pack-face-back::before {
+            content: "?";
+            width: 74px;
+            height: 74px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--poke-gold);
+            font-size: 3.4rem;
+            font-weight: 900;
+            border: 4px solid var(--poke-gold);
+            box-shadow: 0 0 18px rgba(255,215,0,0.65), inset 0 0 16px rgba(255,215,0,0.25);
+            text-shadow: 0 0 12px rgba(255,215,0,0.8);
+        }
+
+        .pack-face-front {
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--poke-dark-card);
+            padding: 12px;
+        }
+
+        .pack-face-front img {
+            width: 92%;
+            height: 78%;
+            object-fit: contain;
+            filter: var(--gold-glow);
+        }
+
+        .pack-face-front .pack-card-name {
+            color: var(--poke-gold);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 6px;
+            text-shadow: 0 0 10px rgba(255,215,0,0.45);
+        }
+
+        .pack-card.rarity-rare .pack-face { border-color: #00bfff; box-shadow: 0 0 12px #00bfff, 0 12px 28px rgba(0,0,0,0.55); }
+        .pack-card.rarity-super .pack-face { border-color: #ff1f1f; box-shadow: 0 0 14px #ffffff, 0 0 28px rgba(255,31,31,0.75), 0 12px 28px rgba(0,0,0,0.55); }
+
+        @media (max-width: 480px) {
+            .pokeball-display.card-pack-stage { width: 152px; height: 214px; }
+            .card-pack-pile { width: 136px; height: 190px; }
+            .pack-face-front .pack-card-name { font-size: 0.7rem; }
+        }
+
+    
+
+        /* --- AJUSTE MOBILE: carta + botão cabendo na tela e grade só dentro das abas --- */
+        .capture-zone {
+            max-width: 500px;
+            margin: 10px auto 10px !important;
+            padding: 12px 12px 14px !important;
+            border-radius: 18px !important;
+        }
+
+        .region-progress-card {
+            margin: 0 auto 10px !important;
+            padding: 10px 12px 12px !important;
+            border-radius: 18px !important;
+        }
+
+        #gen-title {
+            font-size: 0.95rem !important;
+            margin-bottom: 8px !important;
+        }
+
+        .progress-container {
+            height: 10px !important;
+        }
+
+        .pokeball-display.card-pack-stage {
+            width: 132px !important;
+            height: 184px !important;
+            margin: 2px auto 10px !important;
+        }
+
+        .card-pack-pile {
+            width: 118px !important;
+            height: 166px !important;
+        }
+
+        .pack-face {
+            border-radius: 14px !important;
+            border-width: 3px !important;
+        }
+
+        .pack-face-back::before {
+            width: 58px !important;
+            height: 58px !important;
+            font-size: 2.7rem !important;
+            border-width: 3px !important;
+        }
+
+        .pack-face-front {
+            padding: 8px !important;
+        }
+
+        .pack-face-front img {
+            height: 76% !important;
+        }
+
+        .pack-face-front .pack-card-name {
+            font-size: 0.62rem !important;
+            line-height: 1.1 !important;
+        }
+
+        #rollBtn {
+            padding: 11px 26px !important;
+            font-size: 0.8rem !important;
+            border-radius: 24px !important;
+            max-width: 86vw;
+        }
+
+        /* retira a grade principal da tela inicial */
+        #pokedex {
+            display: none !important;
+        }
+
+        .region-album-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.97);
+            z-index: 1800;
+            display: none;
+            flex-direction: column;
+        }
+
+        .region-album-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 12px;
+            background: #080808;
+            border-bottom: 3px solid var(--poke-gold);
+            box-shadow: 0 0 18px rgba(255,215,0,0.2);
+        }
+
+        .region-album-header h2 {
+            color: var(--poke-gold);
+            font-size: 1rem;
+            letter-spacing: 1px;
+            margin: 0;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255,215,0,0.55);
+        }
+
+        .region-close-btn {
+            background: var(--luxury-gradient);
+            color: #000;
+            border: none;
+            border-radius: 18px;
+            padding: 9px 14px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .region-album-grid {
+            flex: 1;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 12px;
+            align-content: start;
+            perspective: 1000px;
+        }
+
+        .region-album-grid .pokemon-slot {
+            min-height: 78px;
+        }
+
+        @media (max-width: 420px) {
+            .album-header-banner {
+                height: 220px !important;
+                max-height: 220px !important;
+            }
+            .gen-nav {
+                padding: 8px 6px !important;
+                gap: 6px !important;
+            }
+            .gen-btn {
+                padding: 5px 10px !important;
+                font-size: 0.66rem !important;
+            }
+            .capture-zone {
+                margin-top: 8px !important;
+            }
+        }
+
+    
+/* --- AJUSTES FINAIS MOBILE: cabeçalho completo, abas maiores e grade sem sobreposição --- */
+
+/* Cabeçalho: mostra a arte inteira, sem cortar personagens ou título */
+.album-header-banner {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    display: block !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    background: #000 !important;
+}
+
+@media (max-width: 600px) {
+    .album-header-banner {
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        object-fit: contain !important;
+        object-position: center center !important;
+    }
+}
+
+/* Abas das regiões um pouco maiores, aproveitando melhor o espaço */
+.gen-nav {
+    padding: 12px 8px 14px !important;
+    gap: 9px !important;
+}
+
+.gen-btn {
+    padding: 8px 16px !important;
+    font-size: 0.78rem !important;
+    border-radius: 20px !important;
+    min-height: 36px !important;
+    min-width: 88px !important;
+    justify-content: center !important;
+}
+
+@media (max-width: 420px) {
+    .gen-nav {
+        padding: 11px 6px 13px !important;
+        gap: 8px !important;
+    }
+
+    .gen-btn {
+        padding: 8px 13px !important;
+        font-size: 0.74rem !important;
+        min-width: 82px !important;
+    }
+}
+
+/* Grade dentro das abas: impede que os quadrinhos fiquem um em cima do outro */
+.region-album-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    padding: 14px 12px 80px !important;
+    align-items: start !important;
+    align-content: start !important;
+    overflow-y: auto !important;
+}
+
+.region-album-grid .pokemon-slot {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 1 / 1.22 !important;
+    margin: 0 !important;
+    position: relative !important;
+    display: block !important;
+    transform-style: preserve-3d !important;
+}
+
+.region-album-grid .slot-face {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.region-album-grid .slot-back,
+.region-album-grid .slot-front {
+    border-radius: 13px !important;
+}
+
+.region-album-grid .pokemon-img {
+    width: 92% !important;
+    height: 92% !important;
+    object-fit: contain !important;
+}
+
+.region-album-grid .slot-id {
+    top: 5px !important;
+    left: 6px !important;
+    font-size: 0.58rem !important;
+    z-index: 5 !important;
+}
+
+@media (max-width: 420px) {
+    .region-album-grid {
+        gap: 10px !important;
+        padding: 12px 10px 80px !important;
+    }
+
+    .region-album-grid .pokemon-slot {
+        aspect-ratio: 1 / 1.18 !important;
+    }
+}
+
+/* Aba aberta: cabeçalho um pouco mais confortável */
+.region-album-header {
+    padding: 18px 14px !important;
+}
+
+.region-album-header h2 {
+    font-size: 1.08rem !important;
+}
+
+.region-close-btn {
+    padding: 11px 18px !important;
+    border-radius: 22px !important;
+    font-size: 0.88rem !important;
+}
+
+
+
+/* --- CORREÇÃO FINAL DA GRADE DAS ABAS: miniaturas sem sobreposição --- */
+.region-album-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-auto-rows: 112px !important;
+    gap: 12px !important;
+    padding: 14px 12px 90px !important;
+    align-items: stretch !important;
+    align-content: start !important;
+    overflow-y: auto !important;
+    perspective: none !important;
+}
+
+.region-album-grid .pokemon-slot {
+    width: 100% !important;
+    height: 112px !important;
+    min-height: 112px !important;
+    aspect-ratio: auto !important;
+    margin: 0 !important;
+    position: relative !important;
+    display: block !important;
+    transform: none !important;
+    transform-style: flat !important;
+    transition: none !important;
+    overflow: hidden !important;
+    border-radius: 14px !important;
+}
+
+.region-album-grid .pokemon-slot.revealed {
+    transform: none !important;
+}
+
+.region-album-grid .slot-face {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    backface-visibility: visible !important;
+    transform: none !important;
+    border-radius: 14px !important;
+}
+
+.region-album-grid .pokemon-slot.revealed .slot-back {
+    display: none !important;
+}
+
+.region-album-grid .pokemon-slot:not(.revealed) .slot-front {
+    display: none !important;
+}
+
+.region-album-grid .pokemon-slot.revealed .slot-front {
+    display: flex !important;
+    transform: none !important;
+}
+
+.region-album-grid .slot-front::after,
+.region-album-grid .pokemon-slot.revealed:hover .slot-front::after {
+    display: none !important;
+}
+
+.region-album-grid .pokemon-img {
+    width: 92% !important;
+    height: 88% !important;
+    object-fit: contain !important;
+}
+
+.region-album-grid .slot-id {
+    top: 5px !important;
+    left: 6px !important;
+    font-size: 0.62rem !important;
+    z-index: 5 !important;
+}
+
+@media (max-width: 420px) {
+    .region-album-grid {
+        grid-auto-rows: 106px !important;
+        gap: 10px !important;
+        padding: 12px 10px 85px !important;
+    }
+    .region-album-grid .pokemon-slot {
+        height: 106px !important;
+        min-height: 106px !important;
+    }
+}
+
+@media (max-width: 360px) {
+    .region-album-grid {
+        grid-auto-rows: 98px !important;
+        gap: 8px !important;
+        padding: 10px 8px 80px !important;
+    }
+    .region-album-grid .pokemon-slot {
+        height: 98px !important;
+        min-height: 98px !important;
+    }
+}
+</style>
 </head>
 <!-- PROTEÇÃO: Eventos direto na tag body para bloquear atalhos de mouse e teclado básicos -->
 <body oncontextmenu="return false;" ondragstart="return false;" onselectstart="return false;" oncopy="return false;" oncut="return false;" onpaste="return false;">
@@ -520,13 +1017,22 @@
             <span id="progressCount">0/0</span>
         </div>
     </div>
-    <div class="pokeball-display" id="pokeBall">
-        <span class="lucky-number" id="pokeNum">?</span>
+    <div class="pokeball-display card-pack-stage" id="pokeBall">
+        <div class="card-pack-pile" id="cardPile"></div>
     </div>
     <button class="btn-capture" id="rollBtn" onclick="startCapture()">Capturar Pokémon</button>
 </section>
 
 <div class="pokedex-grid" id="pokedex"></div>
+
+<div class="region-album-overlay" id="regionAlbumOverlay">
+    <div class="region-album-header">
+        <h2 id="regionAlbumTitle">REGIÃO</h2>
+        <button class="region-close-btn" onclick="closeRegionAlbum()">VOLTAR</button>
+    </div>
+    <div class="region-album-grid" id="regionAlbumGrid"></div>
+</div>
+
 
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
     <div class="modal-card" id="modalCard" onclick="flipModal(event)">
@@ -1664,6 +2170,9 @@
 
     let currentGen = 0;
     let waitingForReveal = false;
+    let currentPackCards = [];
+    let packBusy = false;
+    let packActive = false;
     const unlockedIds = new Set(JSON.parse(localStorage.getItem('luxury_unlocked')) || []);
     const revealedIds = new Set(JSON.parse(localStorage.getItem('luxury_revealed')) || []);
     let freeCapturesUsed = parseInt(localStorage.getItem('free_captures_used') || '0', 10);
@@ -2019,9 +2528,10 @@
                 if (isLocked) return;
                 currentGen = i;
                 document.getElementById('gen-title').innerText = `REGIÃO DE ${g.name.toUpperCase()}`; 
-                if(isGenComplete(i)) document.getElementById('pokeNum').innerText = "?";
+                
                 renderNav();
                 render();
+                openRegionAlbum(i);
             };
             nav.appendChild(btn);
         });
@@ -2045,14 +2555,14 @@
         if(isGenComplete(currentGen)) {
             rollBtn.innerText = "COLEÇÃO COMPLETA";
             rollBtn.disabled = true;
-        } else if (waitingForReveal) {
-            rollBtn.innerText = "VIRE A CARTA";
+        } else if (packActive) {
+            rollBtn.innerText = `ABRA AS CARTAS (${currentPackCards.length}/10)`;
             rollBtn.disabled = true;
         } else if (!canCaptureMore()) {
             rollBtn.innerText = "DESBLOQUEAR PREMIUM";
             rollBtn.disabled = false;
         } else {
-            rollBtn.innerText = "CAPTURAR POKÉMON";
+            rollBtn.innerText = "ABRIR 10 CARTAS";
             rollBtn.disabled = false;
         }
 
@@ -2073,7 +2583,6 @@
             slot.onclick = (e) => {
                 if (!unlockedIds.has(i)) return;
                 if (!revealedIds.has(i)) {
-                    document.getElementById('pokeNum').innerText = "?"; 
                     if (waitingForReveal) waitingForReveal = false;
                     slot.classList.remove('target-pulse');
                     revealedIds.add(i);
@@ -2091,6 +2600,42 @@
             };
             grid.appendChild(slot);
         }
+    }
+
+
+    function buildRegionSlot(i) {
+        const slot = document.createElement('div');
+        const rarity = getCardRarity(i);
+        slot.className = `pokemon-slot rarity-${rarity} ${unlockedIds.has(i) ? 'unlocked' : ''} ${revealedIds.has(i) ? 'revealed' : ''}`;
+        const numText = String(i).padStart(3, '0');
+        slot.innerHTML = `
+            <div class="slot-face slot-back">${numText}</div>
+            <div class="slot-face slot-front">
+                <span class="slot-id">#${numText}</span>
+                <img src="${getImageUrl(i)}" class="pokemon-img">
+            </div>`;
+        slot.onclick = () => {
+            if (!revealedIds.has(i)) return;
+            openZoom(i);
+        };
+        return slot;
+    }
+
+    function openRegionAlbum(index = currentGen) {
+        const gen = generations[index];
+        const overlay = document.getElementById('regionAlbumOverlay');
+        const title = document.getElementById('regionAlbumTitle');
+        const grid = document.getElementById('regionAlbumGrid');
+        title.innerText = `REGIÃO DE ${gen.name.toUpperCase()}`;
+        grid.innerHTML = '';
+        for (let i = gen.start; i <= gen.end; i++) {
+            grid.appendChild(buildRegionSlot(i));
+        }
+        overlay.style.display = 'flex';
+    }
+
+    function closeRegionAlbum() {
+        document.getElementById('regionAlbumOverlay').style.display = 'none';
     }
 
     function openZoom(id) {
@@ -2151,50 +2696,105 @@
         video.pause();
     }
 
+    function pickPackIds(amount = 10) {
+        const gen = generations[currentGen];
+        const notUnlocked = [];
+        for (let i = gen.start; i <= gen.end; i++) {
+            if (!unlockedIds.has(i)) notUnlocked.push(i);
+        }
+        const pack = [];
+        const pool = [...notUnlocked];
+        while (pack.length < amount && pool.length) {
+            const index = Math.floor(Math.random() * pool.length);
+            pack.push(pool.splice(index, 1)[0]);
+        }
+        while (pack.length < amount) {
+            pack.push(Math.floor(Math.random() * (gen.end - gen.start + 1)) + gen.start);
+        }
+        return pack;
+    }
+
+    function createPackCard(id, idx) {
+        const card = document.createElement('div');
+        const rarity = getCardRarity(id);
+        card.className = `pack-card rarity-${rarity}`;
+        card.style.zIndex = String(100 - idx);
+        card.dataset.id = String(id);
+        card.innerHTML = `
+            <div class="pack-face pack-face-back"></div>
+            <div class="pack-face pack-face-front">
+                <img src="${getImageUrl(id)}" alt="${getPokemonName(id)}">
+                <div class="pack-card-name">#${String(id).padStart(3, '0')} ${getPokemonName(id)}</div>
+            </div>`;
+        card.onclick = () => handlePackCardClick(card);
+        return card;
+    }
+
+    function handlePackCardClick(card) {
+        if (packBusy || card !== currentPackCards[0]) return;
+        const id = parseInt(card.dataset.id, 10);
+
+        if (!card.classList.contains('flipped')) {
+            card.classList.add('flipped');
+            unlockedIds.add(id);
+            revealedIds.add(id);
+            if (!fullAccess) freeCapturesUsed++;
+            save();
+            playRevealSoundByRarity(id);
+            render();
+            const albumOverlay = document.getElementById('regionAlbumOverlay');
+            if (albumOverlay && albumOverlay.style.display === 'flex') openRegionAlbum(currentGen);
+            if(isGenComplete(currentGen)) setTimeout(showCongrats, 400);
+            return;
+        }
+
+        packBusy = true;
+        card.classList.add('exit-right');
+        playRollSound();
+        setTimeout(() => {
+            currentPackCards.shift();
+            card.remove();
+            packBusy = false;
+            if (currentPackCards.length === 0) {
+                packActive = false;
+                document.getElementById('rollBtn').disabled = false;
+                render();
+            } else {
+                render();
+            }
+        }, 520);
+    }
+
     function startCapture() {
-        if (waitingForReveal || isGenComplete(currentGen)) return;
+        if (packActive || packBusy || isGenComplete(currentGen)) return;
         if (!canCaptureMore()) {
             showPremiumModal('Limite grátis atingido. Desbloqueie o premium para continuar.');
             return;
         }
 
+        const pile = document.getElementById('cardPile');
         const btn = document.getElementById('rollBtn');
-        const ball = document.getElementById('pokeBall');
-        const num = document.getElementById('pokeNum');
-        const gen = generations[currentGen];
-        const availableInGen = [];
-        for (let i = gen.start; i <= gen.end; i++) { if (!unlockedIds.has(i)) availableInGen.push(i); }
-        if (availableInGen.length === 0) return;
+        pile.innerHTML = '';
+        currentPackCards = [];
+        packActive = true;
+        packBusy = true;
         btn.disabled = true;
-        ball.classList.add('rolling');
-        const interval = setInterval(() => {
-            playRollSound();
-            num.innerText = Math.floor(Math.random() * (gen.end - gen.start + 1)) + gen.start;
-        }, 140);
-        setTimeout(() => {
-            clearInterval(interval);
-            ball.classList.remove('rolling');
-            const luckyNum = availableInGen[Math.floor(Math.random() * availableInGen.length)];
-            num.innerText = luckyNum;
-            // Toca o som final somente depois que o número sorteado já foi pintado na tela.
-            requestAnimationFrame(() => {
-                playCaptureSuccessSound();
-            });
-            unlockedIds.add(luckyNum);
-            if (!fullAccess) freeCapturesUsed++;
-            save();
-            waitingForReveal = true;
-            render();
 
+        const ids = pickPackIds(10);
+        ids.forEach((id, idx) => {
+            const card = createPackCard(id, idx);
+            pile.appendChild(card);
+            currentPackCards.push(card);
             setTimeout(() => {
-                const targetSlot = document.getElementById(`slot-${luckyNum}`);
-                if (targetSlot) {
-                    targetSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetSlot.classList.add('target-pulse');
-                }
-            }, 800); 
+                card.classList.add('at-center');
+                playRollSound();
+            }, idx * 90);
+        });
 
-        }, 2200);
+        setTimeout(() => {
+            packBusy = false;
+            render();
+        }, ids.length * 90 + 220);
     }
 
     async function init() {
