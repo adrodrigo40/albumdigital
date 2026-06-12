@@ -997,6 +997,259 @@
         min-height: 98px !important;
     }
 }
+
+
+/* --- TEMA POKÉMON CLÁSSICO: vermelho + branco --- */
+:root {
+    --poke-red: #e3350d;
+    --poke-red-dark: #b71c1c;
+    --poke-white: #ffffff;
+    --poke-ice: #f5f7fa;
+    --poke-black: #202124;
+    --poke-gold: #ffcb05;
+    --poke-dark-card: #ffffff;
+    --luxury-gradient: linear-gradient(135deg, #ff3b30 0%, #e3350d 55%, #b71c1c 100%);
+    --gold-glow: drop-shadow(0 0 8px rgba(227, 53, 13, 0.25));
+}
+
+body {
+    background: linear-gradient(180deg, #ffffff 0%, #f5f7fa 42%, #ffffff 100%) !important;
+    color: var(--poke-black) !important;
+}
+
+header {
+    background: #ffffff !important;
+    border-bottom: 4px solid var(--poke-red) !important;
+    box-shadow: 0 6px 18px rgba(227,53,13,0.18) !important;
+}
+
+.album-header-banner {
+    background: #ffffff !important;
+}
+
+.gen-nav {
+    background: #ffffff !important;
+    border-bottom: 3px solid var(--poke-red) !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important;
+}
+
+.gen-btn {
+    background: #ffffff !important;
+    color: var(--poke-red) !important;
+    border: 2px solid var(--poke-red) !important;
+    box-shadow: 0 3px 9px rgba(0,0,0,0.08) !important;
+    opacity: 1 !important;
+}
+
+.gen-btn.locked {
+    background: #f1f1f1 !important;
+    color: #8a8a8a !important;
+    border-color: #d0d0d0 !important;
+    opacity: 0.75 !important;
+}
+
+.gen-btn.active {
+    background: linear-gradient(135deg, #ff3b30, #e3350d) !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 0 14px rgba(227,53,13,0.45) !important;
+}
+
+.capture-zone {
+    background: #ffffff !important;
+    border: 3px solid var(--poke-red) !important;
+    box-shadow: 0 8px 22px rgba(227,53,13,0.15) !important;
+}
+
+.region-progress-card {
+    background: #ffffff !important;
+    border: 3px solid var(--poke-red) !important;
+    box-shadow: 0 6px 18px rgba(227,53,13,0.15) !important;
+}
+
+#gen-title {
+    color: var(--poke-red) !important;
+    text-shadow: none !important;
+}
+
+.progress-container {
+    background: #ffffff !important;
+    border: 2px solid #d8d8d8 !important;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #ff3b30, #e3350d) !important;
+    box-shadow: 0 0 8px rgba(227,53,13,0.45) !important;
+}
+
+#progressCount {
+    color: var(--poke-black) !important;
+}
+
+.btn-capture,
+#rollBtn {
+    background: linear-gradient(135deg, #ff3b30, #e3350d) !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 6px 14px rgba(227,53,13,0.28) !important;
+}
+
+.btn-capture:disabled,
+#rollBtn:disabled {
+    background: #d9d9d9 !important;
+    color: #888 !important;
+    border-color: #ccc !important;
+    box-shadow: none !important;
+}
+
+.pokeball-display.card-pack-stage {
+    background: transparent !important;
+}
+
+.pack-face {
+    border-color: var(--poke-red) !important;
+    box-shadow: 0 12px 25px rgba(0,0,0,0.22), 0 0 12px rgba(227,53,13,0.28) !important;
+}
+
+.pack-face-back {
+    background:
+        radial-gradient(circle at 50% 38%, rgba(255,255,255,0.5), transparent 24%),
+        linear-gradient(145deg, #ffffff 0%, #fff4f2 46%, #e3350d 47%, #b71c1c 100%) !important;
+}
+
+.pack-face-back::before {
+    color: #ffffff !important;
+    background: #e3350d !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(227,53,13,0.55), inset 0 0 12px rgba(255,255,255,0.25) !important;
+    text-shadow: 0 0 8px rgba(0,0,0,0.25) !important;
+}
+
+.pack-face-front {
+    background: #ffffff !important;
+}
+
+.pack-face-front .pack-card-name {
+    color: var(--poke-red) !important;
+    text-shadow: none !important;
+}
+
+.region-album-overlay {
+    background: #f5f7fa !important;
+}
+
+.region-album-header {
+    background: #ffffff !important;
+    border-bottom: 4px solid var(--poke-red) !important;
+    box-shadow: 0 4px 14px rgba(227,53,13,0.16) !important;
+}
+
+.region-album-header h2 {
+    color: var(--poke-red) !important;
+    text-shadow: none !important;
+}
+
+.region-close-btn {
+    background: linear-gradient(135deg, #ff3b30, #e3350d) !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 6px 12px rgba(227,53,13,0.25) !important;
+}
+
+.region-album-grid {
+    background: #f5f7fa !important;
+}
+
+.slot-back {
+    background: #ffffff !important;
+    border: 2px solid #e3350d !important;
+    color: #e3350d !important;
+    text-shadow: none !important;
+}
+
+.slot-front {
+    background: #ffffff !important;
+    border: 2px solid #e3350d !important;
+}
+
+.slot-id {
+    color: #e3350d !important;
+    text-shadow: none !important;
+}
+
+.pokemon-img {
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.18)) !important;
+}
+
+.pokemon-slot.rarity-rare .slot-front,
+.pack-card.rarity-rare .pack-face,
+.modal-card.rarity-rare .modal-face {
+    border-color: #1e88e5 !important;
+    box-shadow: 0 0 10px #1e88e5, 0 0 20px rgba(30,136,229,0.35) !important;
+}
+
+.pokemon-slot.rarity-super .slot-front,
+.pack-card.rarity-super .pack-face,
+.modal-card.rarity-super .modal-face {
+    border-color: #ffcb05 !important;
+    box-shadow: 0 0 10px #ffcb05, 0 0 24px rgba(255,203,5,0.55) !important;
+}
+
+.modal-overlay {
+    background: rgba(255,255,255,0.94) !important;
+}
+
+.modal-face {
+    background: #ffffff !important;
+    border-color: var(--poke-red) !important;
+    box-shadow: 0 0 24px rgba(227,53,13,0.25) !important;
+}
+
+.modal-face h2 {
+    color: var(--poke-red) !important;
+}
+
+.modal-face p {
+    color: #555 !important;
+}
+
+.premium-panel {
+    background: #ffffff !important;
+    border-color: var(--poke-red) !important;
+    box-shadow: 0 0 25px rgba(227,53,13,0.25) !important;
+}
+
+.premium-panel h1,
+.premium-status {
+    color: var(--poke-red) !important;
+    text-shadow: none !important;
+}
+
+.premium-panel p,
+.premium-panel small {
+    color: var(--poke-black) !important;
+}
+
+.premium-input {
+    background: #f5f7fa !important;
+    border-color: var(--poke-red) !important;
+    color: var(--poke-black) !important;
+}
+
+.congrats-card {
+    background: #ffffff !important;
+    border-color: var(--poke-red) !important;
+    color: var(--poke-black) !important;
+}
+
+.congrats-card h1 {
+    color: var(--poke-red) !important;
+    text-shadow: none !important;
+}
+
+.congrats-card p {
+    color: var(--poke-black) !important;
+}
 </style>
 </head>
 <!-- PROTEÇÃO: Eventos direto na tag body para bloquear atalhos de mouse e teclado básicos -->
